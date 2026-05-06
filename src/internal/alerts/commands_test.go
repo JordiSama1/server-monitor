@@ -19,7 +19,7 @@ func makeDigest(n Notifier) *DailyDigest {
 			Memory: model.Memory{TotalBytes: 8 * 1024 * 1024 * 1024, UsedBytes: 2 * 1024 * 1024 * 1024},
 			System: model.System{UptimeSeconds: 3600},
 		}, nil
-	}, 10, "http://localhost", "America/Santiago")
+	}, 10, "http://localhost", "", "America/Santiago")
 }
 
 func TestCommandHandlerDispatchesStatus(t *testing.T) {

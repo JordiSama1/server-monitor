@@ -76,7 +76,7 @@ func run() error {
 
 		digest := alerts.NewDailyDigest(notifier, func() (model.MetricsSnapshot, error) {
 			return snapshotter.Snapshot()
-		}, cfg.DigestHour, cfg.DashboardURL, cfg.Timezone)
+		}, cfg.DigestHour, cfg.DashboardURL, cfg.CasaOSURL, cfg.Timezone)
 		go digest.Run(ctx)
 		log.Printf("telegram digest enabled (hour=%d tz=%s url=%s)", cfg.DigestHour, cfg.Timezone, cfg.DashboardURL)
 

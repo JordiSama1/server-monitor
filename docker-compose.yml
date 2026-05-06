@@ -39,10 +39,11 @@ services:
       DEVICE_SSD: /dev/sdb
       DEVICE_HDD: /dev/sda
       NETWORK_INTERFACES: enp1s0f1,tailscale0,docker0,wlp2s0
-      DASHBOARD_URL: http://100.94.124.107:8080
+      DASHBOARD_URL: ${DASHBOARD_URL}
+      CASAOS_URL: ${CASAOS_URL}
       TIMEZONE: America/Santiago
-      TELEGRAM_BOT_TOKEN: ""
-      TELEGRAM_CHAT_ID: ""
+      TELEGRAM_BOT_TOKEN: ${TELEGRAM_BOT_TOKEN}
+      TELEGRAM_CHAT_ID: ${TELEGRAM_CHAT_ID}
       ALERT_COOLDOWN_SECONDS: "1800"
       DIGEST_HOUR: "10"
     x-casaos:
@@ -59,6 +60,9 @@ services:
         - container: DASHBOARD_URL
           description:
             en_us: Public URL shown in Telegram digest (use Tailscale IP)
+        - container: CASAOS_URL
+          description:
+            en_us: CasaOS URL shown in Telegram digest (e.g. http://100.94.124.107)
         - container: DIGEST_HOUR
           description:
             en_us: Hour (0-23) to send daily digest in Santiago timezone

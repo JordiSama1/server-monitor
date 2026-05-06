@@ -18,12 +18,13 @@ type DailyDigest struct {
 	snapshotFn   SnapshotFunc
 	hour         int // hour in loc to fire (0-23)
 	dashboardURL string
+	casaOSURL    string
 	loc          *time.Location
 }
 
 // NewDailyDigest constructs a digest that fires at the given hour in timezone tz each day.
-// If tz is empty or unknown, UTC is used.
-func NewDailyDigest(notifier Notifier, snapshotFn SnapshotFunc, hour int, dashboardURL, tz string) *DailyDigest {
+// If tz is empty or unknown, UTC is used. casaOSURL is optional; leave empty to omit the link.
+func NewDailyDigest(notifier Notifier, snapshotFn SnapshotFunc, hour int, dashboardURL, casaOSURL, tz string) *DailyDigest {
 	loc, err := time.LoadLocation(tz)
 	if err != nil || tz == "" {
 		loc = time.UTC
@@ -33,6 +34,7 @@ func NewDailyDigest(notifier Notifier, snapshotFn SnapshotFunc, hour int, dashbo
 		snapshotFn:   snapshotFn,
 		hour:         hour,
 		dashboardURL: dashboardURL,
+		casaOSURL:    casaOSURL,
 		loc:          loc,
 	}
 }
@@ -61,7 +63,7 @@ func (d *DailyDigest) send() {
 		_ = d.notifier.SendHTML("⚠️ <b>Resumen diario</b>\nNo se pudo obtener el estado del servidor.")
 		return
 	}
-	_ = d.notifier.SendHTML(formatDigest(snap, d.dashboardURL, d.loc))
+	_ = d.notifier.SendHTML(formatDigest(snap, d.dashboardURL, d.casaOSURL, d.loc))
 }
 
 // nextFiring returns the next wall-clock moment when the local hour ticks over.
@@ -74,7 +76,7 @@ func nextFiring(now time.Time, hour int) time.Time {
 	return candidate
 }
 
-func formatDigest(snap model.MetricsSnapshot, dashURL string, loc *time.Location) string {
+func formatDigest(snap model.MetricsSnapshot, dashURL, casaOSURL string, loc *time.Location) string {
 	var b strings.Builder
 
 	b.WriteString("🖥️ <b>Resumen diario — jordisama-server</b>\n")
@@ -147,6 +149,9 @@ func formatDigest(snap model.MetricsSnapshot, dashURL string, loc *time.Location
 	}
 
 	b.WriteString(fmt.Sprintf("\n🔗 <a href=\"%s\">Abrir monitor</a>", dashURL))
+	if casaOSURL != "" {
+		b.WriteString(fmt.Sprintf(" · <a href=\"%s\">CasaOS</a>", casaOSURL))
+	}
 	return b.String()
 }
 

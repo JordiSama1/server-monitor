@@ -62,6 +62,7 @@ type Config struct {
 	AlertCooldown     time.Duration
 	DigestHour        int
 	DashboardURL      string
+	CasaOSURL         string
 	Timezone          string
 }
 
@@ -83,7 +84,7 @@ func Load() (Config, error) {
 		GPUName:         "AMD Vega 8",
 		AlertCooldown:   30 * time.Minute,
 		DigestHour:      10,
-		DashboardURL:    "http://100.94.124.107:8080",
+		DashboardURL:    "",
 		Timezone:        "America/Santiago",
 		Thresholds: Thresholds{
 			CPUTempWarn: 70, CPUTempCrit: 80,
@@ -110,6 +111,7 @@ func Load() (Config, error) {
 	loadString("TELEGRAM_BOT_TOKEN", &c.TelegramToken)
 	loadString("TELEGRAM_CHAT_ID", &c.TelegramChatID)
 	loadString("DASHBOARD_URL", &c.DashboardURL)
+	loadString("CASAOS_URL", &c.CasaOSURL)
 	loadString("TIMEZONE", &c.Timezone)
 	put(loadDurationSeconds("ALERT_COOLDOWN_SECONDS", &c.AlertCooldown, 0))
 	put(loadIntInRange("DIGEST_HOUR", &c.DigestHour, 0, 23))

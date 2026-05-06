@@ -64,7 +64,7 @@ func TestFormatDigestContainsKeyFields(t *testing.T) {
 		},
 	}
 
-	msg := formatDigest(snap, "http://jordisama-server:8080", time.UTC)
+	msg := formatDigest(snap, "http://jordisama-server:8080", "", time.UTC)
 
 	required := []string{
 		"jordisama-server",
@@ -98,7 +98,7 @@ func TestFormatDigestMetricEmojis(t *testing.T) {
 			UsedBytes:  1 * 1024 * 1024 * 1024,
 		},
 	}
-	msg := formatDigest(snap, "http://localhost", time.UTC)
+	msg := formatDigest(snap, "http://localhost", "", time.UTC)
 	if !strings.Contains(msg, "🔴") {
 		t.Errorf("expected 🔴 for 90%% CPU crit, got:\n%s", msg)
 	}
@@ -112,7 +112,7 @@ func TestFormatDigestNilOptionals(t *testing.T) {
 		Memory: model.Memory{TotalBytes: 8 * 1024 * 1024 * 1024, UsedBytes: 1 * 1024 * 1024 * 1024},
 		System: model.System{UptimeSeconds: 3600},
 	}
-	msg := formatDigest(snap, "http://localhost", time.UTC)
+	msg := formatDigest(snap, "http://localhost", "", time.UTC)
 	if msg == "" {
 		t.Error("formatDigest returned empty string")
 	}
@@ -132,7 +132,7 @@ func TestDailyDigestFiresWhenTimeExpires(t *testing.T) {
 	}
 
 	// Use hour=0 (midnight) but manipulate by calling send() directly
-	d := NewDailyDigest(n, snapshotFn, 0, "http://localhost", "UTC")
+	d := NewDailyDigest(n, snapshotFn, 0, "http://localhost", "", "UTC")
 	d.send()
 
 	if !fired {
@@ -148,7 +148,7 @@ func TestDailyDigestRunCancels(t *testing.T) {
 	n := &captureNotifier{}
 	d := NewDailyDigest(n, func() (model.MetricsSnapshot, error) {
 		return model.MetricsSnapshot{}, nil
-	}, 3, "http://localhost", "UTC") // hour=3, won't fire in test
+	}, 3, "http://localhost", "", "UTC") // hour=3, won't fire in test
 
 	ctx, cancel := context.WithTimeout(context.Background(), 50*time.Millisecond)
 	defer cancel()
