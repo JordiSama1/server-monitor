@@ -150,7 +150,7 @@ func formatDigest(snap model.MetricsSnapshot, dashURL, casaOSURL string, loc *ti
 
 	b.WriteString(fmt.Sprintf("\n🔗 <a href=\"%s\">Abrir monitor</a>", dashURL))
 	if casaOSURL != "" {
-		b.WriteString(fmt.Sprintf(" · <a href=\"%s\">CasaOS</a>", casaOSURL))
+		b.WriteString(fmt.Sprintf(" · <a href=\"%s\">Abrir CasaOS</a>", casaOSURL))
 	}
 	return b.String()
 }
