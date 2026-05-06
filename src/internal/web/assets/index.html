@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>jordisama-server · server-monitor</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="grain" aria-hidden="true"></div>
+
+  <header class="masthead">
+    <div class="masthead-left">
+      <div class="masthead-eyebrow">
+        <span class="eyebrow-dot"></span>
+        <span class="eyebrow-text">SERVER MONITOR · v0.1</span>
+      </div>
+      <h1 class="masthead-title">
+        <span class="title-display">jordisama-server</span>
+      </h1>
+      <p class="masthead-sub">Acer Aspire A315-41 · Ryzen 5 3500U · Vega 8 · Ubuntu 24.04 LTS</p>
+    </div>
+    <div class="masthead-right">
+      <div class="status-bloc" id="connection-status" data-state="connecting">
+        <span class="status-dot"></span>
+        <div class="status-meta">
+          <span class="status-label">conectando</span>
+          <span class="status-tick">SSE · 2s</span>
+        </div>
+      </div>
+      <time class="masthead-time" id="masthead-time">—</time>
+    </div>
+  </header>
+
+  <section class="hero">
+    <article class="kpi" data-kpi="cpu">
+      <header class="kpi-head">
+        <span class="kpi-tag">01</span>
+        <span class="kpi-label">CPU</span>
+      </header>
+      <p class="kpi-value">
+        <span class="kpi-num" id="hero-cpu">—</span><span class="kpi-unit">%</span>
+      </p>
+      <p class="kpi-sub" id="hero-cpu-sub">— °C · — MHz</p>
+    </article>
+
+    <article class="kpi" data-kpi="mem">
+      <header class="kpi-head">
+        <span class="kpi-tag">02</span>
+        <span class="kpi-label">Memoria</span>
+      </header>
+      <p class="kpi-value">
+        <span class="kpi-num" id="hero-mem">—</span><span class="kpi-unit">%</span>
+      </p>
+      <p class="kpi-sub" id="hero-mem-sub">— de —</p>
+    </article>
+
+    <article class="kpi" data-kpi="disk">
+      <header class="kpi-head">
+        <span class="kpi-tag">03</span>
+        <span class="kpi-label">Disco</span>
+      </header>
+      <p class="kpi-value">
+        <span class="kpi-num" id="hero-disk">—</span><span class="kpi-unit">%</span>
+      </p>
+      <p class="kpi-sub" id="hero-disk-sub">SSD primario</p>
+    </article>
+
+    <article class="kpi" data-kpi="temp">
+      <header class="kpi-head">
+        <span class="kpi-tag">04</span>
+        <span class="kpi-label">Temperatura</span>
+      </header>
+      <p class="kpi-value">
+        <span class="kpi-num" id="hero-temp">—</span><span class="kpi-unit">°C</span>
+      </p>
+      <p class="kpi-sub" id="hero-temp-sub">CPU package</p>
+    </article>
+
+    <article class="kpi" data-kpi="uptime">
+      <header class="kpi-head">
+        <span class="kpi-tag">05</span>
+        <span class="kpi-label">Uptime</span>
+      </header>
+      <p class="kpi-value">
+        <span class="kpi-num kpi-num-sm" id="hero-uptime">—</span>
+      </p>
+      <p class="kpi-sub" id="hero-uptime-sub">load 1m: —</p>
+    </article>
+  </section>
+
+  <main class="grid">
+
+    <section class="panel panel-cpu">
+      <header class="panel-head">
+        <span class="panel-num">A</span>
+        <h2 class="panel-title">CPU · 8 hilos</h2>
+        <span class="panel-meta" id="cpu-panel-meta">k10temp / Tctl</span>
+      </header>
+      <div class="cores" id="cpu-cores"></div>
+    </section>
+
+    <section class="panel panel-mem">
+      <header class="panel-head">
+        <span class="panel-num">B</span>
+        <h2 class="panel-title">Memoria</h2>
+        <span class="panel-meta" id="mem-panel-meta">DDR4</span>
+      </header>
+      <div class="mem-grid">
+        <div class="mem-bar-wrap">
+          <div class="mem-bar"><div class="mem-bar-fill" id="mem-bar-fill"></div></div>
+          <div class="mem-legend">
+            <span class="mem-legend-pct" id="mem-pct">—</span>
+            <span class="mem-legend-byte" id="mem-byte">— de —</span>
+          </div>
+        </div>
+        <dl class="defs">
+          <div class="def"><dt>Disponible</dt><dd id="mem-avail">—</dd></div>
+          <div class="def"><dt>Caché</dt><dd id="mem-cache">—</dd></div>
+          <div class="def"><dt>Buffers</dt><dd id="mem-buffers">—</dd></div>
+          <div class="def"><dt>Swap</dt><dd id="mem-swap">—</dd></div>
+        </dl>
+      </div>
+    </section>
+
+    <section class="panel panel-disks">
+      <header class="panel-head">
+        <span class="panel-num">C</span>
+        <h2 class="panel-title">Almacenamiento</h2>
+        <span class="panel-meta">2 dispositivos</span>
+      </header>
+      <div id="disks-body" class="rows">
+        <p class="placeholder">esperando datos…</p>
+      </div>
+    </section>
+
+    <section class="panel panel-net">
+      <header class="panel-head">
+        <span class="panel-num">D</span>
+        <h2 class="panel-title">Red</h2>
+        <span class="panel-meta">interfaces activas</span>
+      </header>
+      <div id="net-body" class="rows">
+        <p class="placeholder">esperando datos…</p>
+      </div>
+    </section>
+
+    <section class="panel panel-gpu">
+      <header class="panel-head">
+        <span class="panel-num">E</span>
+        <h2 class="panel-title">GPU</h2>
+        <span class="panel-meta" id="gpu-meta">amdgpu</span>
+      </header>
+      <div class="micro">
+        <div class="micro-stat">
+          <span class="micro-label">carga</span>
+          <span class="micro-value"><span id="gpu-busy">—</span><em>%</em></span>
+          <div class="micro-bar"><div class="micro-bar-fill" id="gpu-bar"></div></div>
+        </div>
+        <div class="micro-stat">
+          <span class="micro-label">temperatura</span>
+          <span class="micro-value"><span id="gpu-temp">—</span><em>°C</em></span>
+        </div>
+      </div>
+    </section>
+
+    <section class="panel panel-battery">
+      <header class="panel-head">
+        <span class="panel-num">F</span>
+        <h2 class="panel-title">Batería</h2>
+        <span class="panel-meta" id="battery-status">—</span>
+      </header>
+      <div class="micro">
+        <div class="micro-stat">
+          <span class="micro-label">carga</span>
+          <span class="micro-value"><span id="battery-pct">—</span><em>%</em></span>
+          <div class="micro-bar"><div class="micro-bar-fill" id="battery-bar"></div></div>
+        </div>
+        <div class="micro-row">
+          <div class="micro-mini">
+            <span class="micro-mini-label">salud</span>
+            <span class="micro-mini-value" id="battery-health">—</span>
+          </div>
+          <div class="micro-mini">
+            <span class="micro-mini-label">energía</span>
+            <span class="micro-mini-value" id="battery-energy">—</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="panel panel-docker">
+      <header class="panel-head">
+        <span class="panel-num">G</span>
+        <h2 class="panel-title">Docker</h2>
+        <span class="panel-meta">contenedores</span>
+      </header>
+      <div class="docker-figure">
+        <div class="docker-num">
+          <span class="docker-running" id="docker-running">—</span>
+          <span class="docker-slash">/</span>
+          <span class="docker-total" id="docker-total">—</span>
+        </div>
+        <p class="docker-caption">corriendo · totales</p>
+      </div>
+    </section>
+
+    <section class="panel panel-system">
+      <header class="panel-head">
+        <span class="panel-num">H</span>
+        <h2 class="panel-title">Sistema</h2>
+        <span class="panel-meta">kernel · scheduler</span>
+      </header>
+      <dl class="defs defs-tight">
+        <div class="def"><dt>Uptime</dt><dd id="sys-uptime">—</dd></div>
+        <div class="def"><dt>Load 1 min</dt><dd id="sys-load1">—</dd></div>
+        <div class="def"><dt>Load 5 min</dt><dd id="sys-load5">—</dd></div>
+        <div class="def"><dt>Load 15 min</dt><dd id="sys-load15">—</dd></div>
+        <div class="def"><dt>Procesos</dt><dd id="sys-procs">—</dd></div>
+      </dl>
+    </section>
+
+    <section class="panel panel-procs">
+      <header class="panel-head">
+        <span class="panel-num">I</span>
+        <h2 class="panel-title">Top consumidores de RAM</h2>
+        <span class="panel-meta">ordenados por RSS</span>
+      </header>
+      <table class="procs">
+        <thead>
+          <tr>
+            <th class="procs-rank">#</th>
+            <th>Proceso</th>
+            <th class="procs-num">PID</th>
+            <th class="procs-num">RAM</th>
+            <th class="procs-num">CPU</th>
+            <th class="procs-num">ETIME</th>
+            <th class="procs-num"></th>
+          </tr>
+        </thead>
+        <tbody id="procs-body">
+          <tr><td colspan="7" class="placeholder">esperando datos…</td></tr>
+        </tbody>
+      </table>
+    </section>
+
+  </main>
+
+  <footer class="colophon">
+    <span class="colophon-left">server-monitor / built with Go 1.26 · chi · embed</span>
+    <span class="colophon-right" id="footer-time">—</span>
+  </footer>
+
+  <script src="app.js"></script>
+</body>
+</html>

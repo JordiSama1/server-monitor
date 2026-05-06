@@ -1,0 +1,29 @@
+{
+   "k10temp-pci-00c3":{
+      "Adapter": "PCI adapter",
+      "Tctl":{
+         "temp1_input": 43.000
+      }
+   },
+   "amdgpu-pci-0300":{
+      "Adapter": "PCI adapter",
+      "vddgfx":{
+
+      },
+      "vddnb":{
+
+      },
+      "edge":{
+         "temp1_input": 43.000
+      }
+   },
+   "BAT1-acpi-0":{
+      "Adapter": "ACPI interface",
+      "in0":{
+         "in0_input": 8.102
+      },
+      "curr1":{
+         "curr1_input": 0.000
+      }
+   }
+}

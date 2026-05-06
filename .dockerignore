@@ -1,0 +1,6 @@
+.git
+local/
+output/
+**/*_test.go
+**/*.md
+src/internal/web/assets/*.map

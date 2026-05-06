@@ -1,0 +1,116 @@
+name: server-monitor
+
+services:
+  server-monitor:
+    image: server-monitor:latest
+    build:
+      context: .
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    pid: host
+    network_mode: host
+    user: "1000:1000"
+    security_opt:
+      - apparmor:unconfined
+    cap_add:
+      - KILL
+    volumes:
+      - type: bind
+        source: /proc
+        target: /proc
+        read_only: true
+      - type: bind
+        source: /sys
+        target: /sys
+        read_only: true
+      - type: bind
+        source: /var/run/docker.sock
+        target: /var/run/docker.sock
+        read_only: true
+    environment:
+      TZ: America/Santiago
+      PORT: "8080"
+      REFRESH_INTERVAL_SECONDS: "2"
+      HOST_PROC: /proc
+      HOST_SYS: /sys
+      BATTERY_NAME: BAT1
+      GPU_CARD: card1
+      GPU_NAME: AMD Vega 8
+      DEVICE_SSD: /dev/sdb
+      DEVICE_HDD: /dev/sda
+      NETWORK_INTERFACES: enp1s0f1,tailscale0,docker0,wlp2s0
+      DASHBOARD_URL: http://100.94.124.107:8080
+      TIMEZONE: America/Santiago
+      TELEGRAM_BOT_TOKEN: ""
+      TELEGRAM_CHAT_ID: ""
+      ALERT_COOLDOWN_SECONDS: "1800"
+      DIGEST_HOUR: "10"
+    x-casaos:
+      envs:
+        - container: TZ
+          description:
+            en_us: Timezone
+        - container: TELEGRAM_BOT_TOKEN
+          description:
+            en_us: Telegram bot token (optional — alerts disabled if empty)
+        - container: TELEGRAM_CHAT_ID
+          description:
+            en_us: Telegram chat ID to receive alerts
+        - container: DASHBOARD_URL
+          description:
+            en_us: Public URL shown in Telegram digest (use Tailscale IP)
+        - container: DIGEST_HOUR
+          description:
+            en_us: Hour (0-23) to send daily digest in Santiago timezone
+        - container: ALERT_COOLDOWN_SECONDS
+          description:
+            en_us: Minimum seconds between repeated alerts for the same metric
+        - container: DEVICE_SSD
+          description:
+            en_us: Primary disk device (e.g. /dev/sdb)
+        - container: DEVICE_HDD
+          description:
+            en_us: Secondary disk device (e.g. /dev/sda)
+        - container: NETWORK_INTERFACES
+          description:
+            en_us: Comma-separated network interfaces to monitor
+      ports:
+        - container: "8080"
+          description:
+            en_us: Web dashboard port
+      volumes:
+        - container: /proc
+          description:
+            en_us: Host /proc (read-only — required for system metrics)
+        - container: /sys
+          description:
+            en_us: Host /sys (read-only — required for sensors and GPU)
+        - container: /var/run/docker.sock
+          description:
+            en_us: Docker socket (read-only — required for container stats)
+
+x-casaos:
+  architectures:
+    - amd64
+  main: server-monitor
+  author: jordisama
+  developer: jordisama
+  category: Utilities
+  title:
+    en_us: Server Monitor
+  tagline:
+    en_us: Real-time dashboard for jordisama-server
+  description:
+    en_us: >
+      Live system dashboard built with Go. Shows CPU, RAM, disk, network,
+      GPU, battery, Docker containers and top processes. Includes Telegram
+      alerts and a daily status digest.
+  icon: https://cdn-icons-png.flaticon.com/512/2282/2282188.png
+  port_map: "8080"
+  index: /
+  tips:
+    before_install:
+      en_us: >
+        Requires access to host /proc and /sys. Set TELEGRAM_BOT_TOKEN and
+        TELEGRAM_CHAT_ID for alerts (optional). DASHBOARD_URL should be
+        your Tailscale IP so the link in the digest is clickable.

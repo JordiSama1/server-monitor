@@ -1,0 +1,27 @@
+# Build outputs and runtime artefacts (skill-mandated paths)
+output/
+local/
+
+# Go-specific
+*.exe
+*.test
+*.out
+coverage.out
+coverage.html
+vendor/
+
+# Editor & OS
+.DS_Store
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Environment
+.env
+.env.local
+.env.*.local
+
+# Tooling caches
+.cache/
+server-monitor

@@ -1,0 +1,28 @@
+{
+   "coretemp-isa-0000":{
+      "Adapter": "ISA adapter",
+      "Package id 0":{
+         "temp1_input": 55.000,
+         "temp1_max": 100.000,
+         "temp1_crit": 100.000
+      },
+      "Core 0":{
+         "temp2_input": 53.000
+      },
+      "Core 1":{
+         "temp3_input": 54.000
+      },
+      "Core 2":{
+         "temp4_input": 56.000
+      },
+      "Core 3":{
+         "temp5_input": 55.000
+      }
+   },
+   "nouveau-pci-0100":{
+      "Adapter": "PCI adapter",
+      "temp1":{
+         "temp1_input": 48.000
+      }
+   }
+}

@@ -1,0 +1,18 @@
+{
+  "json_format_version": [1, 0],
+  "smartctl": {
+    "version": [7, 4],
+    "exit_status": 0
+  },
+  "device": {
+    "name": "/dev/sdb",
+    "info_name": "/dev/sdb [SAT]",
+    "type": "sat",
+    "protocol": "ATA"
+  },
+  "model_name": "Kingston SA400S37120G",
+  "serial_number": "50026B7382C0XXXX",
+  "temperature": {
+    "current": 38
+  }
+}
