@@ -1,82 +1,101 @@
 # server-monitor
 
-Monitor de sistema embebible en CasaOS para `jordisama-server` (Ubuntu 24.04, AMD Ryzen 5 3500U + Vega 8). Expone un dashboard web con métricas en vivo del host: CPU, memoria, disco, red, batería, sensores y contenedores Docker.
+Real-time system dashboard for self-hosted Linux servers. Built with Go — single binary, no runtime dependencies, embeds the full web UI. Designed to run as a Docker container on [CasaOS](https://casaos.io).
 
-> **Estado:** en desarrollo (Fase 0 — esqueleto del proyecto).
+## Features
+
+- **Live metrics via SSE** — CPU (per-core usage, temp, freq), RAM, disk, network, GPU, battery, Docker containers, top processes by RAM
+- **Telegram alerts** — threshold-based notifications (warn/crit) with configurable cooldown and daily status digest
+- **Kill processes** — terminate processes directly from the dashboard with confirmation modal
+- **CasaOS ready** — `docker-compose.yml` with `x-casaos` metadata for one-click custom app install
+- **Exponential backoff** — SSE reconnect with polling fallback after 3 failures
+
+## Quick start
+
+```bash
+docker compose up -d
+```
+
+Open `http://<your-server>:8080`.
+
+## Configuration
+
+All options are environment variables. Defaults work out of the box for most setups.
+
+| Variable | Default | Description |
+|---|---|---|
+| `PORT` | `8080` | Dashboard HTTP port |
+| `REFRESH_INTERVAL_SECONDS` | `2` | SSE push interval |
+| `HOST_PROC` | `/proc` | Host `/proc` path |
+| `HOST_SYS` | `/sys` | Host `/sys` path |
+| `BATTERY_NAME` | `BAT1` | Battery under `/sys/class/power_supply/` |
+| `GPU_CARD` | `card1` | GPU card under `/sys/class/drm/` |
+| `GPU_NAME` | `AMD Vega 8` | GPU display name |
+| `DEVICE_SSD` | `/dev/sdb` | Primary disk for smartctl |
+| `DEVICE_HDD` | `/dev/sda` | Secondary disk for smartctl |
+| `NETWORK_INTERFACES` | `enp1s0f1,tailscale0,docker0,wlp2s0` | Interfaces to monitor |
+| `DASHBOARD_URL` | `http://100.94.124.107:8080` | URL shown in Telegram digest |
+| `TIMEZONE` | `America/Santiago` | Timezone for digest timestamp |
+| `TELEGRAM_BOT_TOKEN` | — | Telegram bot token (alerts disabled if empty) |
+| `TELEGRAM_CHAT_ID` | — | Telegram chat ID to receive alerts |
+| `ALERT_COOLDOWN_SECONDS` | `1800` | Min seconds between repeated alerts |
+| `DIGEST_HOUR` | `10` | Local hour to send daily digest (0–23) |
+| `SMARTCTL_CACHE_SECONDS` | `60` | smartctl result TTL |
+| `SENSORS_CACHE_SECONDS` | `1` | lm-sensors result TTL |
+
+### Thresholds
+
+| Variable | Default | Description |
+|---|---|---|
+| `THRESHOLD_CPU_TEMP_WARN` / `_CRIT` | `70` / `80` | CPU temp (°C) |
+| `THRESHOLD_GPU_TEMP_WARN` / `_CRIT` | `75` / `90` | GPU temp (°C) |
+| `THRESHOLD_DISK_TEMP_WARN` / `_CRIT` | `45` / `55` | Disk temp (°C) |
+| `THRESHOLD_CPU_USAGE_WARN` / `_CRIT` | `60` / `85` | CPU usage (%) |
+| `THRESHOLD_MEM_USAGE_WARN` / `_CRIT` | `70` / `90` | RAM usage (%) |
+| `THRESHOLD_DISK_USAGE_WARN` / `_CRIT` | `70` / `85` | Disk usage (%) |
+| `THRESHOLD_BATTERY_WARN` / `_CRIT` | `50` / `20` | Battery level (%) |
+
+## Telegram bot commands
+
+| Command | Description |
+|---|---|
+| `/status` | Sends an immediate status digest |
 
 ## Stack
 
-- **Lenguaje:** Go 1.24
-- **HTTP:** `net/http` + `chi`
-- **Frontend:** HTML + JS vanilla + Chart.js (servido vía `embed.FS`)
-- **Streaming:** SSE (Server-Sent Events) con fallback a polling
-- **Empaquetado:** Docker multi-stage, contenedor `<30 MB`, instalable como Custom App en CasaOS
+- **Go 1.26** — single binary with embedded assets (`embed.FS`)
+- **chi** — HTTP router
+- **SSE** — real-time streaming with polling fallback
+- **Vanilla JS** — no frameworks, DOM-only (no `innerHTML`)
+- **Docker** — `debian:bookworm-slim` + `smartmontools` + `lm-sensors`
 
-## Estructura del repo
+## Project structure
 
 ```
 server-monitor/
-├── README.md
-├── run                        # Facade: ./run build|test|lint|check|run|clean
-├── .gitignore
-└── src/                       # Módulo Go (go.mod vive aquí)
-    ├── go.mod
-    ├── .golangci.yml
-    ├── cmd/server/main.go     # Entrypoint
-    ├── pkg/                   # 95% del código (collectors, api, model)
-    ├── internal/              # Solo si algo NO debe ser importable
-    └── web/                   # HTML/CSS/JS embebido
+├── Dockerfile
+├── docker-compose.yml
+├── .env                        # local credentials (gitignored)
+└── src/
+    ├── cmd/server/main.go      # entrypoint
+    └── internal/
+        ├── alerts/             # Telegram alerts + daily digest
+        ├── api/                # HTTP server + SSE + kill endpoint
+        ├── collector/          # 9 metric collectors
+        ├── config/             # env var config
+        ├── model/              # wire format types
+        └── web/                # embedded HTML/CSS/JS
 ```
 
-## Uso
+## Building locally
 
 ```bash
-./run build       # Compila a output/bin/server
-./run test        # go test ./... con logs a output/testing/
-./run lint        # gofmt + go vet + golangci-lint
-./run check       # Quality gate completo (lint + tests)
-./run run         # Compila y ejecuta
-./run clean       # Limpia output/
+cd src
+go build -o ../server-monitor ./cmd/server
+docker build -t server-monitor:latest ..
+docker compose up -d --force-recreate
 ```
 
-También está disponible como `server-monitor` global vía `~/.local/bin/server-monitor`.
+## License
 
-## Configuración (env vars)
-
-Todas las opciones se configuran por variables de entorno. Defaults pensados para correr en el container Docker dentro de CasaOS.
-
-| Variable | Default | Descripción |
-|---|---|---|
-| `PORT` | `8080` | Puerto HTTP del dashboard |
-| `REFRESH_INTERVAL_SECONDS` | `2` | Intervalo de refresco de métricas en SSE |
-| `SENSORS_CACHE_SECONDS` | `1` | TTL del caché de `sensors -j` |
-| `SMARTCTL_CACHE_SECONDS` | `60` | TTL del caché de `smartctl` (evita gastar SMART) |
-| `LOG_LEVEL` | `INFO` | `DEBUG`, `INFO`, `WARN`, `ERROR` |
-| `HOST_PROC` | `/proc` | Path a `/proc` del host (`/host/proc` en container) |
-| `HOST_SYS` | `/sys` | Path a `/sys` del host (`/host/sys` en container) |
-| `DEVICE_SSD` | `/dev/sdb` | Dispositivo SSD para `smartctl` |
-| `DEVICE_HDD` | `/dev/sda` | Dispositivo HDD para `smartctl` |
-| `BATTERY_NAME` | `BAT1` | Nombre de batería bajo `/sys/class/power_supply/` |
-| `GPU_CARD` | `card1` | Tarjeta GPU bajo `/sys/class/drm/` |
-| `THRESHOLD_CPU_TEMP_WARN` | `70` | Umbral amarillo para temp CPU (°C) |
-| `THRESHOLD_CPU_TEMP_CRIT` | `80` | Umbral rojo para temp CPU (°C) |
-| `THRESHOLD_GPU_TEMP_WARN` | `75` | Umbral amarillo para temp GPU (°C) |
-| `THRESHOLD_GPU_TEMP_CRIT` | `90` | Umbral rojo para temp GPU (°C) — Vega 8 tolera hasta 95°C |
-| `THRESHOLD_DISK_TEMP_WARN` | `45` | Umbral amarillo para temp disco (°C) |
-| `THRESHOLD_DISK_TEMP_CRIT` | `55` | Umbral rojo para temp disco (°C) |
-| `THRESHOLD_CPU_USAGE_WARN` | `60` | Umbral amarillo para uso CPU (%) |
-| `THRESHOLD_CPU_USAGE_CRIT` | `85` | Umbral rojo para uso CPU (%) |
-| `THRESHOLD_MEM_USAGE_WARN` | `70` | Umbral amarillo para uso RAM (%) |
-| `THRESHOLD_MEM_USAGE_CRIT` | `90` | Umbral rojo para uso RAM (%) |
-| `THRESHOLD_DISK_USAGE_WARN` | `70` | Umbral amarillo para uso disco (%) |
-| `THRESHOLD_DISK_USAGE_CRIT` | `85` | Umbral rojo para uso disco (%) |
-| `THRESHOLD_BATTERY_WARN` | `50` | Umbral amarillo de batería (% restante en descarga) |
-| `THRESHOLD_BATTERY_CRIT` | `20` | Umbral rojo de batería |
-
-## Despliegue en CasaOS
-
-> Pendiente — Fase 6.
-
-## Licencia
-
-Uso personal. Sin licencia pública aún.
+MIT
