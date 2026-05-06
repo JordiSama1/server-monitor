@@ -9,7 +9,7 @@ services:
     restart: unless-stopped
     pid: host
     network_mode: host
-    user: "1000:1000"
+    user: "1000:988"
     security_opt:
       - apparmor:unconfined
     cap_add:
